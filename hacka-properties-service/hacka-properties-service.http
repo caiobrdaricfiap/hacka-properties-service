@@ -1,0 +1,6 @@
+@hacka_properties_service_HostAddress = http://localhost:5104
+
+GET {{hacka_properties_service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
