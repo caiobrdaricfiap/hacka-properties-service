@@ -2,6 +2,7 @@
 using hacka_properties_service.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace hacka_properties_service.Controllers
 {
@@ -14,7 +15,7 @@ namespace hacka_properties_service.Controllers
 
         private Guid GetAuthenticatedProducerId()
         {
-            var producerIdClaim = User.FindFirst("sub")?.Value;
+            var producerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (producerIdClaim == null)
                 throw new UnauthorizedAccessException("Producer not found in token.");
