@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using hacka_properties_service.Infra.Middleware;
 using hacka_properties_service.Infra.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace hacka_properties_service
 {
@@ -22,16 +23,26 @@ namespace hacka_properties_service
 
             // AUTHENTICATION (Identity Service)
             builder.Services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+                .AddAuthentication(options =>
                 {
-                    options.Authority = "https://localhost:5001";
-
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                }).AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateAudience = false
+                        ValidateIssuer = true,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!))
                     };
                 });
+            builder.Services.AddAuthorization();
 
 
             // CONTROLLERS
@@ -52,8 +63,10 @@ namespace hacka_properties_service
                 {
                     Description = "JWT Authorization header using Bearer scheme",
                     Name = "Authorization",
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.Http
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
